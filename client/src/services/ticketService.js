@@ -1,8 +1,8 @@
 import { http } from "../config/http";
 
-export const getAllTicket = async () => {
+export const getAllTicket = async (skip) => {
   try {
-    return await http.get("/ticket/all");
+    return await http.get(`/ticket/all/?skip=${skip}`);
   } catch (err) {
     return err;
   }

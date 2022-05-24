@@ -24,6 +24,7 @@ import usePagination from "../Pagination";
 import {
   addTicket,
   deleteTicketById,
+  getAllTicket,
   getTicketById,
   updateTicket,
 } from "../services/ticketService";
@@ -44,25 +45,29 @@ function Ticket({ getList }) {
   const [ticketList, setTicketList] = useState([]);
   const [userData, setUserData] = useState([]);
   const [ticketData, setTicketData] = useState([]);
+  const [ticketCount, setTicketCount] = useState();
 
   let [page, setPage] = useState(1);
   const PER_PAGE = 10;
 
-  const count = Math.ceil(ticketList.length / PER_PAGE);
+  const count = Math.ceil(ticketCount / PER_PAGE);
+
   const _DATA = usePagination(ticketList, PER_PAGE);
   let [pageCount, setPageCount] = useState(0);
-  const handleChange = (e, p) => {
+  const handleChange = async (e, p) => {
     setPageCount((p - 1) * 10);
     setPage(p);
-
+    const response = await getAllTicket((p - 1) * 10);
+    setTicketList(response.data.tickets);
     _DATA.jump(p);
   };
 
   useEffect(() => {
     try {
       setUserData(JSON.parse(localStorage.getItem("user")));
-      getList().then((res) => {
-        setTicketList(res);
+      getAllTicket(0).then((response) => {
+        setTicketList(response.data.tickets);
+        setTicketCount(response.data.count);
       });
     } catch (e) {
       console.log(e.message);

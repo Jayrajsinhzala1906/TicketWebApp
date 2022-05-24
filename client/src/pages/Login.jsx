@@ -17,7 +17,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import * as Yup from "yup";
-import { login } from "../services/userService";
+import { login, setTokenAndRedirect } from "../services/userService";
 import { useState } from "react";
 
 const theme = createTheme();
@@ -27,6 +27,7 @@ export default function SignIn() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [message, setMessage] = useState();
+  const [response, setResponse] = useState();
 
   useEffect(() => {
     if (user?.user) {
@@ -50,19 +51,34 @@ export default function SignIn() {
     },
     validationSchema: validationSchema,
 
-    onSubmit: async (values) => {
-      const response = await login(values);
-      if (response.response.data.error) {
-        setMessage(response.response.data.error);
-      }
-      if (response.status === 200) {
-        localStorage.setItem("token", response.data.token);
-        localStorage.setItem("user", JSON.stringify(response.data.user));
-        dispatch(setUser(response.data.user));
-        navigate("/dashboard");
-      } else {
-        console.log("error");
-      }
+    onSubmit: (values) => {
+      login(values)
+        .then((res) => {
+          setResponse(res);
+          try {
+            if (response.status === 200) {
+              localStorage.setItem("token", response.data.token);
+              localStorage.setItem("user", JSON.stringify(response.data.user));
+              dispatch(setUser(response.data.user));
+              navigate("/dashboard");
+            } else {
+              console.log("error");
+            }
+          } catch (err) {
+            return err;
+          }
+        })
+        .then(setMessage(response?.response?.data?.error));
+
+      // console.log(message);
+      // if (response.status === 200) {
+      //   localStorage.setItem("token", response.data.token);
+      //   localStorage.setItem("user", JSON.stringify(response.data.user));
+      //   dispatch(setUser(response.data.user));
+      //   navigate("/dashboard");
+      // } else {
+      //   console.log("error");
+      // }
     },
   });
 

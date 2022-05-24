@@ -15,14 +15,15 @@ export const addTicket = async (req, res) => {
   }
 };
 
-export const getAllTicket = (req, res) => {
+export const getAllTicket = async (req, res) => {
   try {
-    Ticket.find({ isDeleted: false }, (err, tickets) => {
-      if (err) {
-        return err;
-      }
-      return res.status(200).json({ tickets });
-    });
+    const count = await Ticket.count({ isDeleted: false });
+    const tickets = await Ticket.find({ isDeleted: false })
+      .skip(req.query.skip)
+      .limit(10);
+    if (tickets) {
+      return res.status(200).json({ tickets, count });
+    }
   } catch (err) {
     return res.status(400).json(err);
   }

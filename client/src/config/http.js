@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const http = axios.create({
-  baseURL: "http://localhost:8000",
+  baseURL: process.env.REACT_APP_API,
 });
 
 http.interceptors.request.use((req) => {

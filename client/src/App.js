@@ -39,6 +39,7 @@ function App() {
             }
           />
         </Route>
+        <Route path="*" element={<Login />} />
       </Routes>
     </BrowserRouter>
   );
