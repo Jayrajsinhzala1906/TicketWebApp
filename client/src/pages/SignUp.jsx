@@ -12,10 +12,30 @@ import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useFormik } from "formik";
 import { http } from "../config/http";
+import { useNavigate } from "react-router-dom";
+import * as Yup from "yup";
+import { signUp } from "../services/userService";
 
 const theme = createTheme();
 
 export default function SignUp() {
+  const navigate = useNavigate();
+
+  const validationSchema = Yup.object().shape({
+    firstName: Yup.string("Enter your First Name").required(
+      "FirstName is Required"
+    ),
+    lastName: Yup.string("Enter your Last Name").required(
+      "LastName is Required"
+    ),
+    email: Yup.string("Enter your email")
+      .email("Enter a valid email")
+      .required("Email is Required"),
+    password: Yup.string("Enter your password")
+      .min(8, "Password should be of minimum 8 characters length")
+      .required("Password is Required"),
+  });
+
   const formik = useFormik({
     initialValues: {
       firstName: "",
@@ -23,10 +43,10 @@ export default function SignUp() {
       email: "",
       password: "",
     },
+    validationSchema: validationSchema,
     onSubmit: async (values) => {
-      alert(JSON.stringify(values, null, 2));
-      const response = await http.post("user/signup", values);
-      console.log(response);
+      const response = signUp(values);
+      navigate("/");
     },
   });
 

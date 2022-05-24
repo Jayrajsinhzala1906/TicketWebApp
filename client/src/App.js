@@ -4,14 +4,41 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { getCurrentUser } from "./helpers/getCurrentUser";
+import { setUser } from "./features/user/userSlice";
+import DashboardLayout from "./components/DashboardLayout";
+import ProtectedRoute from "./components/ProtectedRoutes";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 function App() {
+  const dispatch = useDispatch();
+  // const navigate = useNavigate();
+
+  useEffect(() => {
+    // dispatch(setUser(null));
+    getCurrentUser().then((user) => {
+      console.log("response user data useeffect", user);
+      dispatch(setUser(user));
+    });
+  }, [dispatch]);
+
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/signUp" element={<SignUp />} />
+        <Route path="/signup" element={<SignUp />} />
         <Route path="/" element={<Login />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard" element={<DashboardLayout />}>
+          <Route
+            index
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+        </Route>
       </Routes>
     </BrowserRouter>
   );

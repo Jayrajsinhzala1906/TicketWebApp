@@ -1,5 +1,4 @@
 import * as React from "react";
-
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -14,7 +13,6 @@ import {
   Typography,
 } from "@mui/material";
 import { Box } from "@mui/system";
-
 import { useSelector } from "react-redux";
 import { useState } from "react";
 import { useFormik } from "formik";
@@ -23,6 +21,12 @@ import { useEffect } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import usePagination from "../Pagination";
+import {
+  addTicket,
+  deleteTicketById,
+  getTicketById,
+  updateTicket,
+} from "../services/ticketService";
 
 const style = {
   position: "absolute",
@@ -43,16 +47,12 @@ function Ticket({ getList }) {
 
   let [page, setPage] = useState(1);
   const PER_PAGE = 10;
-  console.log(ticketList.length);
+
   const count = Math.ceil(ticketList.length / PER_PAGE);
-  console.log(count);
   const _DATA = usePagination(ticketList, PER_PAGE);
-  console.log("data", _DATA);
   let [pageCount, setPageCount] = useState(0);
   const handleChange = (e, p) => {
-    console.log("p", p);
     setPageCount((p - 1) * 10);
-    console.log("pagecount", pageCount);
     setPage(p);
 
     _DATA.jump(p);
@@ -60,7 +60,6 @@ function Ticket({ getList }) {
 
   useEffect(() => {
     try {
-      console.log("hello");
       setUserData(JSON.parse(localStorage.getItem("user")));
       getList().then((res) => {
         setTicketList(res);
@@ -75,15 +74,13 @@ function Ticket({ getList }) {
   const [editId, setEditId] = useState(null);
 
   const deleteTicket = async (id) => {
-    const response = await http.delete(`/ticket/${id}`);
-    console.log(response);
+    const response = await deleteTicketById(id);
     getList().then((res) => {
       setTicketList(res);
     });
   };
   const editTicket = async (id) => {
-    const response = await http.get(`ticket/${id}`);
-    console.log("tickets", response.data.tickets[0]);
+    const response = await getTicketById(id);
     setTicketData(response.data.tickets[0]);
     setEditId(id);
     setModalOpen(true);
@@ -97,14 +94,11 @@ function Ticket({ getList }) {
     onSubmit: async (values) => {
       alert(JSON.stringify(values, null, 2));
       if (!editId) {
-        const response = await http.post("ticket/add", values);
-        console.log(response);
+        const response = await addTicket(values);
       } else {
-        const response = await http.put(`ticket/${editId}`, values);
-        console.log(response);
+        const response = await updateTicket(editId, values);
         setEditId(null);
         setTicketData([]);
-        console.log("ticket data after click on edit", ticketData);
       }
       setModalOpen(false);
       getList().then((res) => {
@@ -187,7 +181,7 @@ function Ticket({ getList }) {
               <TableCell>{row.createdAt}</TableCell>
               <TableCell>{row.user_firstName}</TableCell>
               <TableCell>
-                {userData.firstName === row.user_firstName ? (
+                {userData._id === row.user_id ? (
                   <IconButton
                     aria-label="edit"
                     onClick={() => {
@@ -204,7 +198,7 @@ function Ticket({ getList }) {
                 )}
               </TableCell>
               <TableCell>
-                {userData.firstName === row.user_firstName ? (
+                {userData._id === row.user_id ? (
                   <IconButton
                     aria-label="delete"
                     onClick={() => {

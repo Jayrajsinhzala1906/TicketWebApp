@@ -3,8 +3,6 @@ import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
 import TextField from "@mui/material/TextField";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Checkbox from "@mui/material/Checkbox";
 import Link from "@mui/material/Link";
 import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
@@ -13,37 +11,53 @@ import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useFormik } from "formik";
-import { http } from "../config/http";
 import { useDispatch } from "react-redux";
 import { setUser } from "../features/user/userSlice";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import { useSelector } from "react-redux";
+import * as Yup from "yup";
+import { login } from "../services/userService";
+import { useState } from "react";
 
 const theme = createTheme();
 
 export default function SignIn() {
+  const user = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [message, setMessage] = useState();
 
   useEffect(() => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-  }, []);
+    if (user?.user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
+
+  const validationSchema = Yup.object().shape({
+    email: Yup.string("Enter your email")
+      .email("Enter a valid email")
+      .required("Email is Required"),
+    password: Yup.string("Enter your password")
+      .min(8, "Password should be of minimum 8 characters length")
+      .required("Password is Required"),
+  });
 
   const formik = useFormik({
     initialValues: {
       email: "",
       password: "",
     },
+    validationSchema: validationSchema,
 
     onSubmit: async (values) => {
-      alert(JSON.stringify(values, null, 2));
-      const response = await http.post("user/login", values);
-      console.log(response);
+      const response = await login(values);
+      if (response.response.data.error) {
+        setMessage(response.response.data.error);
+      }
       if (response.status === 200) {
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("user", JSON.stringify(response.data.user));
-        console.log(response.data.user);
         dispatch(setUser(response.data.user));
         navigate("/dashboard");
       } else {
@@ -70,15 +84,9 @@ export default function SignIn() {
           <Typography component="h1" variant="h5">
             Sign in
           </Typography>
-          <Box
-            component="form"
-            onSubmit={formik.handleSubmit}
-            noValidate
-            sx={{ mt: 1 }}
-          >
+          <Box component="form" onSubmit={formik.handleSubmit} sx={{ mt: 1 }}>
             <TextField
               margin="normal"
-              required
               fullWidth
               id="email"
               label="Email Address"
@@ -104,10 +112,7 @@ export default function SignIn() {
               error={formik.touched.password && Boolean(formik.errors.password)}
               helperText={formik.touched.password && formik.errors.password}
             />
-            <FormControlLabel
-              control={<Checkbox value="remember" color="primary" />}
-              label="Remember me"
-            />
+
             <Button
               type="submit"
               fullWidth
@@ -125,6 +130,14 @@ export default function SignIn() {
               </Grid>
             </Grid>
           </Box>
+
+          {message && (
+            <div className="form-group">
+              <div className="alert alert-danger" role="alert">
+                {message}
+              </div>
+            </div>
+          )}
         </Box>
       </Container>
     </ThemeProvider>

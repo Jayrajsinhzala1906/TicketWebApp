@@ -1,9 +1,10 @@
+import { AppBar, Button, Toolbar, Typography } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { Outlet, useNavigate } from "react-router-dom";
 import { setUser } from "../features/user/userSlice";
 
 export default function DashboardLayout() {
-  const user = useSelector((state) => state);
+  const user = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const handleLogout = () => {
@@ -29,7 +30,7 @@ export default function DashboardLayout() {
           >
             Dashboard
           </Typography>
-          <Typography>Welcome, {userData?.firstName}</Typography>
+          <Typography>Welcome, {user?.user?.firstName}</Typography>
           &nbsp;&nbsp;&nbsp;
           <Button
             onClick={handleLogout}
