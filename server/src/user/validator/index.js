@@ -36,7 +36,7 @@ export const userSignupValidator = (req, res, next) => {
   next();
 };
 
-export function userSignInValidator(req, res, next) {
+export const userSignInValidator = (req, res, next) => {
   req
     .check("email", "Email must be between 3 to 32 characters")
     .matches(
@@ -55,4 +55,4 @@ export function userSignInValidator(req, res, next) {
     return res.status(400).json({ firstError });
   }
   next();
-}
+};

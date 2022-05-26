@@ -11,7 +11,6 @@ import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useFormik } from "formik";
-import { http } from "../config/http";
 import { useNavigate } from "react-router-dom";
 import * as Yup from "yup";
 import { signUp } from "../services/userService";
@@ -44,9 +43,11 @@ export default function SignUp() {
       password: "",
     },
     validationSchema: validationSchema,
-    onSubmit: async (values) => {
+    onSubmit: (values) => {
       const response = signUp(values);
-      navigate("/");
+      if (response.status === 200) {
+        navigate("/");
+      }
     },
   });
 

@@ -14,12 +14,9 @@ import "bootstrap/dist/css/bootstrap.min.css";
 
 function App() {
   const dispatch = useDispatch();
-  // const navigate = useNavigate();
 
   useEffect(() => {
-    // dispatch(setUser(null));
     getCurrentUser().then((user) => {
-      console.log("response user data useeffect", user);
       dispatch(setUser(user));
     });
   }, [dispatch]);

@@ -17,12 +17,43 @@ export const addTicket = async (req, res) => {
 
 export const getAllTicket = async (req, res) => {
   try {
+    // .sort((req.query.name = req.query.order))
+    const sortQuery = req.query.order;
+    let sortObject = {};
+    if (req.query.name == "ticket_title") {
+      sortObject["ticket_title"] = sortQuery;
+    } else if (req.query.name == "ticket_desc") {
+      sortObject["ticket_desc"] = sortQuery;
+    } else if (req.query.name == "user_firstName") {
+      sortObject["user_firstName"] = sortQuery;
+    } else if (req.query.name == "createdAt") {
+      sortObject["createdAt"] = sortQuery;
+    }
     const count = await Ticket.count({ isDeleted: false });
     const tickets = await Ticket.find({ isDeleted: false })
+      .sort(sortObject)
       .skip(req.query.skip)
       .limit(10);
+
     if (tickets) {
       return res.status(200).json({ tickets, count });
+    }
+  } catch (err) {
+    return res.status(400).json(err);
+  }
+};
+
+export const getSearchTicket = async (req, res) => {
+  console.log(req.query.input);
+  const input = req.query.input;
+  try {
+    const tickets = await Ticket.find({
+      isDeleted: false,
+      ticket_title: new RegExp(input),
+    });
+
+    if (tickets) {
+      return res.status(200).json({ tickets });
     }
   } catch (err) {
     return res.status(400).json(err);

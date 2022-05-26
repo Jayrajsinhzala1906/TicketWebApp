@@ -1,24 +1,16 @@
 import * as React from "react";
-import { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
 import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Tickets from "./Tickets";
-import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import { http } from "../config/http";
 import { getAllTicket } from "../services/ticketService";
 
 function DashboardContent() {
-  const user = useSelector((state) => state.user);
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-
   const getTickets = async () => {
     try {
-      const response = await getAllTicket();
+      const response = await getAllTicket(0);
       return response.data.tickets;
     } catch (e) {
       console.log(e.message);

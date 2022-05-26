@@ -13,10 +13,8 @@ import {
   Typography,
 } from "@mui/material";
 import { Box } from "@mui/system";
-import { useSelector } from "react-redux";
 import { useState } from "react";
 import { useFormik } from "formik";
-import { http } from "../config/http";
 import { useEffect } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
@@ -25,9 +23,12 @@ import {
   addTicket,
   deleteTicketById,
   getAllTicket,
+  getSearchTicket,
+  getSortedTicket,
   getTicketById,
   updateTicket,
 } from "../services/ticketService";
+import { TableSortLabel } from "@mui/material";
 
 const style = {
   position: "absolute",
@@ -41,19 +42,43 @@ const style = {
   p: 4,
 };
 
+const divStyle = {
+  display: "flex",
+  justifyContent: "space-between",
+};
+
+const button = {
+  height: "40px",
+};
+
+const sortingColumnValues = {
+  ticket_title: "asc",
+  ticket_desc: "asc",
+  user_firstName: "asc",
+  createdAt: "asc",
+};
+
 function Ticket({ getList }) {
   const [ticketList, setTicketList] = useState([]);
   const [userData, setUserData] = useState([]);
-  const [ticketData, setTicketData] = useState([]);
-  const [ticketCount, setTicketCount] = useState();
+  const [ticket_title, setTicket_Title] = useState("asc");
+  const [ticket_desc, setTicket_Desc] = useState("asc");
+  const [user_firstName, setUser_FirstName] = useState("asc");
+  const [createdAt, setCreatedAt] = useState("asc");
 
+  const [ticketData, setTicketData] = useState([]);
+  const [ticketCount, setTicketCount] = useState(0);
+  let [pageCount, setPageCount] = useState(0);
   let [page, setPage] = useState(1);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editId, setEditId] = useState(null);
+  const [orderDirection, setOrderDirection] = useState("asc");
+
   const PER_PAGE = 10;
 
   const count = Math.ceil(ticketCount / PER_PAGE);
-
   const _DATA = usePagination(ticketList, PER_PAGE);
-  let [pageCount, setPageCount] = useState(0);
+
   const handleChange = async (e, p) => {
     setPageCount((p - 1) * 10);
     setPage(p);
@@ -65,8 +90,9 @@ function Ticket({ getList }) {
   useEffect(() => {
     try {
       setUserData(JSON.parse(localStorage.getItem("user")));
-      getAllTicket(0).then((response) => {
+      getAllTicket(0, "_id", 0).then((response) => {
         setTicketList(response.data.tickets);
+        console.log(response);
         setTicketCount(response.data.count);
       });
     } catch (e) {
@@ -74,12 +100,8 @@ function Ticket({ getList }) {
     }
   }, []);
 
-  const user = useSelector((state) => state.user);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editId, setEditId] = useState(null);
-
   const deleteTicket = async (id) => {
-    const response = await deleteTicketById(id);
+    deleteTicketById(id);
     getList().then((res) => {
       setTicketList(res);
     });
@@ -90,6 +112,44 @@ function Ticket({ getList }) {
     setEditId(id);
     setModalOpen(true);
   };
+
+  const handleSortRequest = (d) => {
+    if (d == "ticket_title") {
+      setTicket_Title(ticket_title === "asc" ? "desc" : "asc");
+      getAllTicket((page - 1) * 10, d, ticket_title).then((res) => {
+        console.log(res.data.tickets);
+        setTicketList(res.data.tickets);
+      });
+    } else if (d == "ticket_desc") {
+      setTicket_Desc(ticket_desc === "asc" ? "desc" : "asc");
+      getAllTicket((page - 1) * 10, "ticket_desc", ticket_desc).then((res) => {
+        setTicketList(res.data.tickets);
+      });
+    } else if (d == "user_firstName") {
+      setUser_FirstName(user_firstName === "asc" ? "desc" : "asc");
+      getAllTicket((page - 1) * 10, "user_firstName", user_firstName).then(
+        (res) => {
+          setTicketList(res.data.tickets);
+        }
+      );
+    } else if (d == "createdAt") {
+      setCreatedAt(createdAt === "asc" ? "desc" : "asc");
+      getAllTicket((page - 1) * 10, d, createdAt).then((res) => {
+        setTicketList(res.data.tickets);
+      });
+    }
+
+    // setSortedTickets((sortedTickets.ticket_title = "desc"));
+  };
+
+  const searching = (e) => {
+    if (e.key === "Enter") {
+      getSearchTicket(e.target.value).then((res) =>
+        setTicketList(res.data.tickets)
+      );
+      console.log(e.target.value);
+    }
+  };
   const formik = useFormik({
     initialValues: {
       title: ticketData?.ticket_title,
@@ -97,11 +157,10 @@ function Ticket({ getList }) {
     },
     enableReinitialize: true,
     onSubmit: async (values) => {
-      alert(JSON.stringify(values, null, 2));
       if (!editId) {
-        const response = await addTicket(values);
+        updateTicket(values);
       } else {
-        const response = await updateTicket(editId, values);
+        addTicket(values);
         setEditId(null);
         setTicketData([]);
       }
@@ -113,17 +172,21 @@ function Ticket({ getList }) {
   });
   return (
     <>
-      {console.log("list", ticketList)}
-      <Typography component="h2" variant="h6" color="primary" gutterBottom>
-        Tickets{" "}
+      {/* <Typography component="h2" variant="h6" color="primary" gutterBottom> */}
+      <Box sx={divStyle}>
         <Button
+          sx={button}
+          variant="contained"
           onClick={() => {
             setModalOpen(true);
           }}
         >
           Add Ticket
         </Button>
-      </Typography>
+
+        <input type="text" style={button} onKeyDown={searching}></input>
+      </Box>
+
       <Modal
         open={modalOpen}
         onClose={() => {
@@ -169,10 +232,26 @@ function Ticket({ getList }) {
         <TableHead>
           <TableRow>
             <TableCell>No</TableCell>
-            <TableCell>Title</TableCell>
-            <TableCell>Description</TableCell>
-            <TableCell>Created At</TableCell>
-            <TableCell>Created By</TableCell>
+            <TableCell onClick={() => handleSortRequest("ticket_title")}>
+              <TableSortLabel active={true} direction={ticket_title}>
+                Title
+              </TableSortLabel>
+            </TableCell>
+            <TableCell onClick={() => handleSortRequest("ticket_desc")}>
+              <TableSortLabel active={true} direction={ticket_desc}>
+                Description
+              </TableSortLabel>
+            </TableCell>
+            <TableCell onClick={() => handleSortRequest("createdAt")}>
+              <TableSortLabel active={true} direction={createdAt}>
+                Created At
+              </TableSortLabel>
+            </TableCell>
+            <TableCell onClick={() => handleSortRequest("user_firstName")}>
+              <TableSortLabel active={true} direction={user_firstName}>
+                Created By
+              </TableSortLabel>
+            </TableCell>
             <TableCell>Edit</TableCell>
             <TableCell>Delete</TableCell>
           </TableRow>
