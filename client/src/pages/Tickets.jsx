@@ -10,7 +10,6 @@ import {
   Modal,
   Pagination,
   TextField,
-  Typography,
 } from "@mui/material";
 import { Box } from "@mui/system";
 import { useState } from "react";
@@ -24,7 +23,6 @@ import {
   deleteTicketById,
   getAllTicket,
   getSearchTicket,
-  getSortedTicket,
   getTicketById,
   updateTicket,
 } from "../services/ticketService";
@@ -51,13 +49,6 @@ const button = {
   height: "40px",
 };
 
-const sortingColumnValues = {
-  ticket_title: "asc",
-  ticket_desc: "asc",
-  user_firstName: "asc",
-  createdAt: "asc",
-};
-
 function Ticket({ getList }) {
   const [ticketList, setTicketList] = useState([]);
   const [userData, setUserData] = useState([]);
@@ -65,14 +56,12 @@ function Ticket({ getList }) {
   const [ticket_desc, setTicket_Desc] = useState("asc");
   const [user_firstName, setUser_FirstName] = useState("asc");
   const [createdAt, setCreatedAt] = useState("asc");
-
   const [ticketData, setTicketData] = useState([]);
   const [ticketCount, setTicketCount] = useState(0);
   let [pageCount, setPageCount] = useState(0);
   let [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [orderDirection, setOrderDirection] = useState("asc");
 
   const PER_PAGE = 10;
 
@@ -92,7 +81,7 @@ function Ticket({ getList }) {
       setUserData(JSON.parse(localStorage.getItem("user")));
       getAllTicket(0, "_id", 0).then((response) => {
         setTicketList(response.data.tickets);
-        console.log(response);
+
         setTicketCount(response.data.count);
       });
     } catch (e) {
@@ -114,32 +103,29 @@ function Ticket({ getList }) {
   };
 
   const handleSortRequest = (d) => {
-    if (d == "ticket_title") {
+    if (d === "ticket_title") {
       setTicket_Title(ticket_title === "asc" ? "desc" : "asc");
       getAllTicket((page - 1) * 10, d, ticket_title).then((res) => {
-        console.log(res.data.tickets);
         setTicketList(res.data.tickets);
       });
-    } else if (d == "ticket_desc") {
+    } else if (d === "ticket_desc") {
       setTicket_Desc(ticket_desc === "asc" ? "desc" : "asc");
       getAllTicket((page - 1) * 10, "ticket_desc", ticket_desc).then((res) => {
         setTicketList(res.data.tickets);
       });
-    } else if (d == "user_firstName") {
+    } else if (d === "user_firstName") {
       setUser_FirstName(user_firstName === "asc" ? "desc" : "asc");
       getAllTicket((page - 1) * 10, "user_firstName", user_firstName).then(
         (res) => {
           setTicketList(res.data.tickets);
         }
       );
-    } else if (d == "createdAt") {
+    } else if (d === "createdAt") {
       setCreatedAt(createdAt === "asc" ? "desc" : "asc");
       getAllTicket((page - 1) * 10, d, createdAt).then((res) => {
         setTicketList(res.data.tickets);
       });
     }
-
-    // setSortedTickets((sortedTickets.ticket_title = "desc"));
   };
 
   const searching = (e) => {
@@ -147,7 +133,6 @@ function Ticket({ getList }) {
       getSearchTicket(e.target.value).then((res) =>
         setTicketList(res.data.tickets)
       );
-      console.log(e.target.value);
     }
   };
   const formik = useFormik({
@@ -172,7 +157,6 @@ function Ticket({ getList }) {
   });
   return (
     <>
-      {/* <Typography component="h2" variant="h6" color="primary" gutterBottom> */}
       <Box sx={divStyle}>
         <Button
           sx={button}

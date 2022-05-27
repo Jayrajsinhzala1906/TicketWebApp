@@ -20,15 +20,16 @@ export const getAllTicket = async (req, res) => {
     // .sort((req.query.name = req.query.order))
     const sortQuery = req.query.order;
     let sortObject = {};
-    if (req.query.name == "ticket_title") {
-      sortObject["ticket_title"] = sortQuery;
-    } else if (req.query.name == "ticket_desc") {
-      sortObject["ticket_desc"] = sortQuery;
-    } else if (req.query.name == "user_firstName") {
-      sortObject["user_firstName"] = sortQuery;
-    } else if (req.query.name == "createdAt") {
-      sortObject["createdAt"] = sortQuery;
-    }
+    sortObject[req.query.name] = sortQuery;
+    // if (req.query.name == "ticket_title") {
+    //   sortObject["ticket_title"] = sortQuery;
+    // } else if (req.query.name == "ticket_desc") {
+    //   sortObject["ticket_desc"] = sortQuery;
+    // } else if (req.query.name == "user_firstName") {
+    //   sortObject["user_firstName"] = sortQuery;
+    // } else if (req.query.name == "createdAt") {
+    //   sortObject["createdAt"] = sortQuery;
+    // }
     const count = await Ticket.count({ isDeleted: false });
     const tickets = await Ticket.find({ isDeleted: false })
       .sort(sortObject)

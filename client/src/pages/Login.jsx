@@ -19,6 +19,7 @@ import { useSelector } from "react-redux";
 import * as Yup from "yup";
 import { login } from "../services/userService";
 import { useState } from "react";
+import { Alert, Stack } from "@mui/material";
 
 const theme = createTheme();
 
@@ -135,11 +136,9 @@ export default function SignIn() {
           </Box>
 
           {message && (
-            <div className="form-group">
-              <div className="alert alert-danger" role="alert">
-                {message}
-              </div>
-            </div>
+            <Stack sx={{ width: "100%" }} spacing={2}>
+              <Alert severity="error">{message}</Alert>
+            </Stack>
           )}
         </Box>
       </Container>
